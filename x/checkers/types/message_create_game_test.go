@@ -19,8 +19,8 @@ func TestMsgCreateGame_ValidateBasic(t *testing.T) {
 			name: "invalid creator address",
 			msg: types.MsgCreateGame{
 				Creator: "invalid_address",
-				Black: sample.AccAddress(),
-				Red: sample.AccAddress(),
+				Black:   sample.AccAddress(),
+				Red:     sample.AccAddress(),
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		},

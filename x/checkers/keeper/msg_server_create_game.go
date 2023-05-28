@@ -21,17 +21,17 @@ func (k msgServer) CreateGame(goCtx context.Context, msg *types.MsgCreateGame) (
 
 	// create the new game object to store
 	newGame := rules.New()
-	storedGame := types.StoredGame {
+	storedGame := types.StoredGame{
 		Index: newIdx,
 		Board: newGame.String(),
-		Turn: rules.PieceStrings[newGame.Turn],
+		Turn:  rules.PieceStrings[newGame.Turn],
 		Black: msg.Black,
-		Red: msg.Red,
+		Red:   msg.Red,
 	}
 	if err := storedGame.Validate(); err != nil {
 		return nil, err
 	}
-	
+
 	// store the new game
 	k.Keeper.SetStoredGame(ctx, storedGame)
 
