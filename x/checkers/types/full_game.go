@@ -10,7 +10,7 @@ import (
 
 func (s StoredGame) GetBlackAddress() (sdk.AccAddress, error) {
 	black, err := sdk.AccAddressFromBech32(s.Black)
-	return black, sdkerrors.Wrapf(err, ErrInvalidBlack.Error())
+	return black, sdkerrors.Wrapf(err, ErrInvalidBlack.Error(), s.Black)
 }
 
 func (s StoredGame) ParseGame() (*rules.Game, error) {
@@ -27,7 +27,7 @@ func (s StoredGame) ParseGame() (*rules.Game, error) {
 
 func (s StoredGame) GetRedAddress() (sdk.AccAddress, error) {
 	red, err := sdk.AccAddressFromBech32(s.Red)
-	return red, sdkerrors.Wrapf(err, ErrInvalidRed.Error())
+	return red, sdkerrors.Wrapf(err, ErrInvalidRed.Error(), s.Red)
 }
 
 func (s StoredGame) Validate() error {
