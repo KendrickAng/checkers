@@ -1,9 +1,10 @@
-package types
+package types_test
 
 import (
 	"testing"
 
 	"github.com/alice/checkers/testutil/sample"
+	"github.com/alice/checkers/x/checkers/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 )
@@ -11,18 +12,18 @@ import (
 func TestMsgPlayMove_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  MsgPlayMove
+		msg  types.MsgPlayMove
 		err  error
 	}{
 		{
 			name: "invalid address",
-			msg: MsgPlayMove{
+			msg: types.MsgPlayMove{
 				Creator: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
-			msg: MsgPlayMove{
+			msg: types.MsgPlayMove{
 				Creator: sample.AccAddress(),
 			},
 		},
