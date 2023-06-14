@@ -17,11 +17,13 @@ const (
 
 func GetStoredGame1() StoredGame {
 	return StoredGame{
-		Black: alice,
-		Red:   bob,
-		Index: "1",
-		Board: rules.New().String(),
-		Turn:  "b",
+		Black:    alice,
+		Red:      bob,
+		Index:    "1",
+		Board:    rules.New().String(),
+		Turn:     "b",
+		Winner:   rules.PieceStrings[rules.NO_PLAYER],
+		Deadline: DeadlineLayout,
 	}
 }
 
