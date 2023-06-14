@@ -22,18 +22,23 @@ func (k msgServer) CreateGame(goCtx context.Context, msg *types.MsgCreateGame) (
 	// create the new game object to store
 	newGame := rules.New()
 	storedGame := types.StoredGame{
-		Index: newIdx,
-		Board: newGame.String(),
-		Turn:  rules.PieceStrings[newGame.Turn],
-		Black: msg.Black,
-		Red:   msg.Red,
-		Winner:    rules.PieceStrings[rules.NO_PLAYER],
-		Deadline: types.FormatDeadline(types.GetNextDeadline(ctx)),
-		MoveCount: 0,
+		Index:       newIdx,
+		Board:       newGame.String(),
+		Turn:        rules.PieceStrings[newGame.Turn],
+		Black:       msg.Black,
+		Red:         msg.Red,
+		Winner:      rules.PieceStrings[rules.NO_PLAYER],
+		Deadline:    types.FormatDeadline(types.GetNextDeadline(ctx)),
+		MoveCount:   0,
+		BeforeIndex: types.NoFifoIndex,
+		AfterIndex:  types.NoFifoIndex,
 	}
 	if err := storedGame.Validate(); err != nil {
 		return nil, err
 	}
+
+	// send the new game to the tail because it is freshly created
+	k.Keeper.SendToFifoTail(ctx, &storedGame, &systemInfo)
 
 	// store the new game
 	k.Keeper.SetStoredGame(ctx, storedGame)
@@ -50,7 +55,7 @@ func (k msgServer) CreateGame(goCtx context.Context, msg *types.MsgCreateGame) (
 			sdk.NewAttribute(types.GameCreatedEventRed, msg.Red),
 		),
 	)
-	
+
 	return &types.MsgCreateGameResponse{
 		GameIndex: newIdx,
 	}, nil

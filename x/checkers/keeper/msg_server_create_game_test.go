@@ -43,6 +43,8 @@ func TestCreate1GameHasSaved(t *testing.T) {
 	require.True(t, found)
 	require.EqualValues(t, types.SystemInfo{
 		NextId: 2,
+		FifoHeadIndex: "1",
+		FifoTailIndex: "1",
 	}, systemInfo)
 	game1, found1 := keeper.GetStoredGame(sdk.UnwrapSDKContext(context), "1")
 	require.True(t, found1)
@@ -54,6 +56,8 @@ func TestCreate1GameHasSaved(t *testing.T) {
 		Red:    carol,
 		Winner: "*",
 		Deadline: types.FormatDeadline(types.GetNextDeadline(ctx)),
+		BeforeIndex: types.NoFifoIndex,
+		AfterIndex: types.NoFifoIndex,
 	}, game1)
 }
 
