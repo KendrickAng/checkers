@@ -1,4 +1,4 @@
-package types
+package types_test
 
 import (
 	"strings"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/alice/checkers/x/checkers/rules"
 	"github.com/alice/checkers/x/checkers/testutil"
+	"github.com/alice/checkers/x/checkers/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -15,15 +16,15 @@ const (
 	bob   = testutil.Bob
 )
 
-func GetStoredGame1() StoredGame {
-	return StoredGame{
+func GetStoredGame1() types.StoredGame {
+	return types.StoredGame{
 		Black:    alice,
 		Red:      bob,
 		Index:    "1",
 		Board:    rules.New().String(),
 		Turn:     "b",
 		Winner:   rules.PieceStrings[rules.NO_PLAYER],
-		Deadline: DeadlineLayout,
+		Deadline: types.DeadlineLayout,
 	}
 }
 

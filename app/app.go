@@ -170,6 +170,9 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		// nil = allow to keep coins in escrow
+		// bank module creates an address for the module's escrow account
+		checkersmoduletypes.ModuleName: nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -390,6 +393,7 @@ func New(
 	monitoringModule := monitoringp.NewAppModule(appCodec, app.MonitoringKeeper)
 
 	app.CheckersKeeper = *checkersmodulekeeper.NewKeeper(
+		app.BankKeeper,
 		appCodec,
 		keys[checkersmoduletypes.StoreKey],
 		keys[checkersmoduletypes.MemStoreKey],

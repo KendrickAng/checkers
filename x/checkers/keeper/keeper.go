@@ -17,15 +17,16 @@ type (
 		storeKey   sdk.StoreKey
 		memKey     sdk.StoreKey
 		paramstore paramtypes.Subspace
+		bank       types.BankEscrowKeeper
 	}
 )
 
 func NewKeeper(
+	bank types.BankEscrowKeeper,
 	cdc codec.BinaryCodec,
 	storeKey,
 	memKey sdk.StoreKey,
 	ps paramtypes.Subspace,
-
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -38,6 +39,7 @@ func NewKeeper(
 		storeKey:   storeKey,
 		memKey:     memKey,
 		paramstore: ps,
+		bank:       bank,
 	}
 }
 
