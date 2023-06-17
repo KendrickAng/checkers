@@ -25,6 +25,7 @@ func TestCreateGame(t *testing.T) {
 		Black:   bob,
 		Red:     carol,
 		Wager:   45,
+		Denom:   "stake",
 	})
 	require.Nil(t, err)
 	require.EqualValues(t, types.MsgCreateGameResponse{
@@ -40,6 +41,7 @@ func TestCreate1GameHasSaved(t *testing.T) {
 		Black:   bob,
 		Red:     carol,
 		Wager:   45,
+		Denom:   "stake",
 	})
 	systemInfo, found := keeper.GetSystemInfo(sdk.UnwrapSDKContext(context))
 	require.True(t, found)
@@ -61,6 +63,7 @@ func TestCreate1GameHasSaved(t *testing.T) {
 		BeforeIndex: types.NoFifoIndex,
 		AfterIndex:  types.NoFifoIndex,
 		Wager:       45,
+		Denom:       "stake",
 	}, game1)
 }
 
@@ -71,6 +74,7 @@ func TestCreate1GameEmitted(t *testing.T) {
 		Black:   bob,
 		Red:     carol,
 		Wager:   45,
+		Denom:   "stake",
 	})
 	ctx := sdk.UnwrapSDKContext(context)
 	require.NotNil(t, ctx)
@@ -85,6 +89,7 @@ func TestCreate1GameEmitted(t *testing.T) {
 			{Key: "black", Value: bob},
 			{Key: "red", Value: carol},
 			{Key: "wager", Value: "45"},
+			{Key: "denom", Value: "stake"},
 		},
 	}, event)
 }
@@ -98,6 +103,7 @@ func TestCreate1GameConsumedGas(t *testing.T) {
 		Black:   bob,
 		Red:     carol,
 		Wager:   45,
+		Denom:   "stake",
 	})
 	after := ctx.GasMeter().GasConsumed()
 	require.GreaterOrEqual(t, after, before+25_000)
