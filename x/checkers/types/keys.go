@@ -65,6 +65,6 @@ const (
 )
 
 const (
-    CreateGameGas = 15000
-    PlayMoveGas   = 1000
+	CreateGameGas = 15000
+	PlayMoveGas   = 1000
 )
