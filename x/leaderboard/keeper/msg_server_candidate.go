@@ -11,12 +11,17 @@ import (
 func (k msgServer) SendCandidate(goCtx context.Context, msg *types.MsgSendCandidate) (*types.MsgSendCandidateResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: logic before transmitting the packet
+	// get the Player data
+	playerInfo, found := k.GetPlayerInfo(ctx, msg.Creator)
+
+	if !found {
+		return nil, types.ErrCandidateNotFound
+	}
 
 	// Construct the packet
 	var packet types.CandidatePacketData
 
-	packet.PlayerInfo = msg.PlayerInfo
+	packet.PlayerInfo = &playerInfo
 
 	// Transmit the packet
 	err := k.TransmitCandidatePacket(
