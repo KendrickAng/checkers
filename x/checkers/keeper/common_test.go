@@ -1,9 +1,9 @@
 package keeper_test
 
-import "github.com/alice/checkers/x/checkers/testutil"
+import "github.com/alice/checkers/x/checkers/testutils"
 
 const (
-	alice = testutil.Alice
-	bob   = testutil.Bob
-	carol = testutil.Carol
+	alice = testutils.Alice
+	bob   = testutils.Bob
+	carol = testutils.Carol
 )

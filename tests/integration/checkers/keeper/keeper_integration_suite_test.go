@@ -6,7 +6,7 @@ import (
 
 	checkersapp "github.com/alice/checkers/app"
 	"github.com/alice/checkers/x/checkers/keeper"
-	"github.com/alice/checkers/x/checkers/testutil"
+	"github.com/alice/checkers/x/checkers/testutils"
 	"github.com/alice/checkers/x/checkers/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	alice = testutil.Alice
-	bob   = testutil.Bob
-	carol = testutil.Carol
+	alice = testutils.Alice
+	bob   = testutils.Bob
+	carol = testutils.Carol
 )
 const (
 	balAlice = 50000000

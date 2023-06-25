@@ -5,10 +5,9 @@ import (
 	"testing"
 
 	keepertest "github.com/alice/checkers/testutil/keeper"
-
+	"github.com/alice/checkers/testutil/mock_types"
 	"github.com/alice/checkers/x/checkers"
 	"github.com/alice/checkers/x/checkers/keeper"
-	"github.com/alice/checkers/x/checkers/testutil"
 	"github.com/alice/checkers/x/checkers/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/mock/gomock"
@@ -16,10 +15,11 @@ import (
 )
 
 func setupMsgServerWithOneGameForPlayMove(t testing.TB) (types.MsgServer, keeper.Keeper, context.Context,
-	*gomock.Controller, *testutil.MockBankEscrowKeeper) {
+	*gomock.Controller, *mock_types.MockBankEscrowKeeper, *mock_types.MockCheckersLeaderboardKeeper) {
 	ctrl := gomock.NewController(t)
-	bankMock := testutil.NewMockBankEscrowKeeper(ctrl)
-	k, ctx := keepertest.CheckersKeeperWithMocks(t, bankMock)
+	bankMock := mock_types.NewMockBankEscrowKeeper(ctrl)
+	leaderboardMock := mock_types.NewMockCheckersLeaderboardKeeper(ctrl)
+	k, ctx := keepertest.CheckersKeeperWithMocks(t, bankMock, leaderboardMock)
 	checkers.InitGenesis(ctx, *k, *types.DefaultGenesis())
 	server := keeper.NewMsgServerImpl(*k)
 	context := sdk.WrapSDKContext(ctx)
@@ -30,11 +30,11 @@ func setupMsgServerWithOneGameForPlayMove(t testing.TB) (types.MsgServer, keeper
 		Wager:   45,
 		Denom:   "stake",
 	})
-	return server, *k, context, ctrl, bankMock
+	return server, *k, context, ctrl, bankMock, leaderboardMock
 }
 
 func TestPlayMove(t *testing.T) {
-	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
@@ -54,7 +54,7 @@ func TestPlayMove(t *testing.T) {
 }
 
 func TestPlayMoveGameNotFound(t *testing.T) {
-	msgServer, _, context, ctrl, _ := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, _, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
@@ -69,13 +69,15 @@ func TestPlayMoveGameNotFound(t *testing.T) {
 }
 
 func TestPlayMoveSameBlackRed(t *testing.T) {
-	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
 	msgServer.CreateGame(context, &types.MsgCreateGame{
 		Creator: alice,
 		Black:   bob,
 		Red:     bob,
+		Wager:   46,
+		Denom:   "coin",
 	})
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
@@ -94,7 +96,7 @@ func TestPlayMoveSameBlackRed(t *testing.T) {
 }
 
 func TestPlayMoveSavedGame(t *testing.T) {
-	msgServer, keeper, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, keeper, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	ctx := sdk.UnwrapSDKContext(context)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
@@ -121,18 +123,18 @@ func TestPlayMoveSavedGame(t *testing.T) {
 		Turn:        "r",
 		Black:       bob,
 		Red:         carol,
-		Winner:      "*",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 		MoveCount:   1,
-		BeforeIndex: types.NoFifoIndex,
-		AfterIndex:  types.NoFifoIndex,
+		BeforeIndex: "-1",
+		AfterIndex:  "-1",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
+		Winner:      "*",
 		Wager:       45,
 		Denom:       "stake",
 	}, game1)
 }
 
 func TestPlayMoveEmitted(t *testing.T) {
-	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	ctx := sdk.UnwrapSDKContext(context)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
@@ -161,8 +163,40 @@ func TestPlayMoveEmitted(t *testing.T) {
 	}, event)
 }
 
+func TestPlayMoveCalledBank(t *testing.T) {
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	escrow.ExpectPay(context, bob, 45).Times(1)
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   bob,
+		GameIndex: "1",
+		FromX:     1,
+		FromY:     2,
+		ToX:       2,
+		ToY:       3,
+	})
+}
+
+func TestPlayMoveConsumedGas(t *testing.T) {
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
+	ctx := sdk.UnwrapSDKContext(context)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
+	before := ctx.GasMeter().GasConsumed()
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   bob,
+		GameIndex: "1",
+		FromX:     1,
+		FromY:     2,
+		ToX:       2,
+		ToY:       3,
+	})
+	after := ctx.GasMeter().GasConsumed()
+	require.GreaterOrEqual(t, after, before+5_000)
+}
+
 func TestPlayMoveNotPlayer(t *testing.T) {
-	msgServer, _, context, ctrl, _ := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, _, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   alice,
@@ -177,7 +211,7 @@ func TestPlayMoveNotPlayer(t *testing.T) {
 }
 
 func TestPlayMoveCannotParseGame(t *testing.T) {
-	msgServer, k, context, ctrl, _ := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, k, context, ctrl, _, _ := setupMsgServerWithOneGameForPlayMove(t)
 	ctx := sdk.UnwrapSDKContext(context)
 	defer ctrl.Finish()
 	storedGame, _ := k.GetStoredGame(ctx, "1")
@@ -199,7 +233,7 @@ func TestPlayMoveCannotParseGame(t *testing.T) {
 }
 
 func TestPlayMoveWrongOutOfTurn(t *testing.T) {
-	msgServer, _, context, ctrl, _ := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, _, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   carol,
@@ -214,7 +248,7 @@ func TestPlayMoveWrongOutOfTurn(t *testing.T) {
 }
 
 func TestPlayMoveWrongPieceAtDestination(t *testing.T) {
-	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
 	playMoveResponse, err := msgServer.PlayMove(context, &types.MsgPlayMove{
@@ -230,7 +264,7 @@ func TestPlayMoveWrongPieceAtDestination(t *testing.T) {
 }
 
 func TestPlayMove2(t *testing.T) {
-	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
 	msgServer.PlayMove(context, &types.MsgPlayMove{
@@ -258,7 +292,7 @@ func TestPlayMove2(t *testing.T) {
 }
 
 func TestPlayMove2SavedGame(t *testing.T) {
-	msgServer, keeper, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, keeper, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	ctx := sdk.UnwrapSDKContext(context)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
@@ -293,18 +327,18 @@ func TestPlayMove2SavedGame(t *testing.T) {
 		Turn:        "b",
 		Black:       bob,
 		Red:         carol,
-		Winner:      "*",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 		MoveCount:   2,
-		BeforeIndex: types.NoFifoIndex,
-		AfterIndex:  types.NoFifoIndex,
+		BeforeIndex: "-1",
+		AfterIndex:  "-1",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
+		Winner:      "*",
 		Wager:       45,
 		Denom:       "stake",
 	}, game1)
 }
 
 func TestPlayMove2Emitted(t *testing.T) {
-	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	ctx := sdk.UnwrapSDKContext(context)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
@@ -339,8 +373,31 @@ func TestPlayMove2Emitted(t *testing.T) {
 	}, event.Attributes[6:])
 }
 
+func TestPlayMove2CalledBank(t *testing.T) {
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
+	defer ctrl.Finish()
+	payBob := escrow.ExpectPay(context, bob, 45).Times(1)
+	escrow.ExpectPay(context, carol, 45).Times(1).After(payBob)
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   bob,
+		GameIndex: "1",
+		FromX:     1,
+		FromY:     2,
+		ToX:       2,
+		ToY:       3,
+	})
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   carol,
+		GameIndex: "1",
+		FromX:     0,
+		FromY:     5,
+		ToX:       1,
+		ToY:       4,
+	})
+}
+
 func TestPlayMove3(t *testing.T) {
-	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
 	msgServer.PlayMove(context, &types.MsgPlayMove{
@@ -376,7 +433,7 @@ func TestPlayMove3(t *testing.T) {
 }
 
 func TestPlayMove3SavedGame(t *testing.T) {
-	msgServer, keeper, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, keeper, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	ctx := sdk.UnwrapSDKContext(context)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
@@ -419,22 +476,21 @@ func TestPlayMove3SavedGame(t *testing.T) {
 		Turn:        "r",
 		Black:       bob,
 		Red:         carol,
-		Winner:      "*",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 		MoveCount:   3,
-		BeforeIndex: types.NoFifoIndex,
-		AfterIndex:  types.NoFifoIndex,
+		BeforeIndex: "-1",
+		AfterIndex:  "-1",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
+		Winner:      "*",
 		Wager:       45,
 		Denom:       "stake",
 	}, game1)
 }
 
-func TestPlayMoveConsumedGas(t *testing.T) {
-	msgServer, _, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
-	ctx := sdk.UnwrapSDKContext(context)
+func TestPlayMove3CalledBank(t *testing.T) {
+	msgServer, _, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	defer ctrl.Finish()
-	escrow.ExpectAny(context)
-	before := ctx.GasMeter().GasConsumed()
+	payBob := escrow.ExpectPay(context, bob, 45).Times(1)
+	escrow.ExpectPay(context, carol, 45).Times(1).After(payBob)
 	msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
 		GameIndex: "1",
@@ -443,6 +499,39 @@ func TestPlayMoveConsumedGas(t *testing.T) {
 		ToX:       2,
 		ToY:       3,
 	})
-	after := ctx.GasMeter().GasConsumed()
-	require.GreaterOrEqual(t, after, before+5_000)
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   carol,
+		GameIndex: "1",
+		FromX:     0,
+		FromY:     5,
+		ToX:       1,
+		ToY:       4,
+	})
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   bob,
+		GameIndex: "1",
+		FromX:     2,
+		FromY:     3,
+		ToX:       0,
+		ToY:       5,
+	})
+}
+
+func TestSavedPlayedDeadlineIsParseable(t *testing.T) {
+	msgServer, keeper, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
+	ctx := sdk.UnwrapSDKContext(context)
+	defer ctrl.Finish()
+	escrow.ExpectAny(context)
+	msgServer.PlayMove(context, &types.MsgPlayMove{
+		Creator:   bob,
+		GameIndex: "1",
+		FromX:     1,
+		FromY:     2,
+		ToX:       2,
+		ToY:       3,
+	})
+	game, found := keeper.GetStoredGame(ctx, "1")
+	require.True(t, found)
+	_, err := game.GetDeadlineAsTime()
+	require.Nil(t, err)
 }

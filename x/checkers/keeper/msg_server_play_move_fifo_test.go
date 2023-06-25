@@ -9,7 +9,7 @@ import (
 )
 
 func TestPlayMove2Games1MoveHasSavedFifo(t *testing.T) {
-	msgServer, keeper, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, keeper, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	ctx := sdk.UnwrapSDKContext(context)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
@@ -17,8 +17,8 @@ func TestPlayMove2Games1MoveHasSavedFifo(t *testing.T) {
 		Creator: bob,
 		Black:   carol,
 		Red:     alice,
-		Wager:   45,
-		Denom:   "stake",
+		Wager:   46,
+		Denom:   "coin",
 	})
 
 	msgServer.PlayMove(context, &types.MsgPlayMove{
@@ -44,11 +44,11 @@ func TestPlayMove2Games1MoveHasSavedFifo(t *testing.T) {
 		Turn:        "r",
 		Black:       bob,
 		Red:         carol,
-		Winner:      "*",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 		MoveCount:   uint64(1),
 		BeforeIndex: "2",
 		AfterIndex:  "-1",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
+		Winner:      "*",
 		Wager:       45,
 		Denom:       "stake",
 	}, game1)
@@ -60,18 +60,18 @@ func TestPlayMove2Games1MoveHasSavedFifo(t *testing.T) {
 		Turn:        "b",
 		Black:       carol,
 		Red:         alice,
-		Winner:      "*",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 		MoveCount:   uint64(0),
 		BeforeIndex: "-1",
 		AfterIndex:  "1",
-		Wager:       45,
-		Denom:       "stake",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
+		Winner:      "*",
+		Wager:       46,
+		Denom:       "coin",
 	}, game2)
 }
 
 func TestPlayMove2Games2MovesHasSavedFifo(t *testing.T) {
-	msgServer, keeper, context, ctrl, escrow := setupMsgServerWithOneGameForPlayMove(t)
+	msgServer, keeper, context, ctrl, escrow, _ := setupMsgServerWithOneGameForPlayMove(t)
 	ctx := sdk.UnwrapSDKContext(context)
 	defer ctrl.Finish()
 	escrow.ExpectAny(context)
@@ -79,8 +79,8 @@ func TestPlayMove2Games2MovesHasSavedFifo(t *testing.T) {
 		Creator: bob,
 		Black:   carol,
 		Red:     alice,
-		Wager:   45,
-		Denom:   "stake",
+		Wager:   46,
+		Denom:   "coin",
 	})
 	msgServer.PlayMove(context, &types.MsgPlayMove{
 		Creator:   bob,
@@ -114,11 +114,11 @@ func TestPlayMove2Games2MovesHasSavedFifo(t *testing.T) {
 		Turn:        "r",
 		Black:       bob,
 		Red:         carol,
-		Winner:      "*",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 		MoveCount:   uint64(1),
 		BeforeIndex: "-1",
 		AfterIndex:  "2",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
+		Winner:      "*",
 		Wager:       45,
 		Denom:       "stake",
 	}, game1)
@@ -130,12 +130,12 @@ func TestPlayMove2Games2MovesHasSavedFifo(t *testing.T) {
 		Turn:        "r",
 		Black:       carol,
 		Red:         alice,
-		Winner:      "*",
-		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
 		MoveCount:   uint64(1),
 		BeforeIndex: "1",
 		AfterIndex:  "-1",
-		Wager:       45,
-		Denom:       "stake",
+		Deadline:    types.FormatDeadline(ctx.BlockTime().Add(types.MaxTurnDuration)),
+		Winner:      "*",
+		Wager:       46,
+		Denom:       "coin",
 	}, game2)
 }

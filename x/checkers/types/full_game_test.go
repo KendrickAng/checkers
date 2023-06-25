@@ -5,15 +5,15 @@ import (
 	"testing"
 
 	"github.com/alice/checkers/x/checkers/rules"
-	"github.com/alice/checkers/x/checkers/testutil"
+	"github.com/alice/checkers/x/checkers/testutils"
 	"github.com/alice/checkers/x/checkers/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	alice = testutil.Alice
-	bob   = testutil.Bob
+	alice = testutils.Alice
+	bob   = testutils.Bob
 )
 
 func GetStoredGame1() types.StoredGame {

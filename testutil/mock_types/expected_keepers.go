@@ -2,7 +2,7 @@
 // Source: x/checkers/types/expected_keepers.go
 
 // Package testutil is a generated GoMock package.
-package testutil
+package mock_types
 
 import (
 	reflect "reflect"

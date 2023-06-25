@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-	"github.com/alice/checkers/x/checkers/testutil"
+	"github.com/alice/checkers/x/checkers/testutils"
 	"github.com/alice/checkers/x/checkers/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -313,7 +313,7 @@ func (suite *IntegrationTestSuite) TestPlayMove3DidNotPay() {
 
 func (suite *IntegrationTestSuite) TestPlayMoveToWinnerBankPaid() {
 	suite.setupSuiteWithOneGameForPlayMove()
-	testutil.PlayAllMoves(suite.T(), suite.msgServer, sdk.WrapSDKContext(suite.ctx), "1", bob, carol, testutil.Game1Moves)
+	testutils.PlayAllMoves(suite.T(), suite.msgServer, sdk.WrapSDKContext(suite.ctx), "1", bob, carol, testutils.Game1Moves)
 	suite.RequireBankBalance(balAlice, alice)
 	suite.RequireBankBalance(balBob+45, bob)
 	suite.RequireBankBalance(balCarol-45, carol)
@@ -337,8 +337,8 @@ func (suite *IntegrationTestSuite) TestPlayMoveToWinnerBankPaidDifferentTokens()
 	suite.RequireBankBalance(balCarol, carol)
 	suite.RequireBankBalanceWithDenom(balCarol, "coin", carol)
 	suite.RequireBankBalance(0, checkersModuleAddress)
-	testutil.PlayAllMoves(suite.T(), suite.msgServer, sdk.WrapSDKContext(suite.ctx), "1", bob, carol, testutil.Game1Moves)
-	testutil.PlayAllMoves(suite.T(), suite.msgServer, sdk.WrapSDKContext(suite.ctx), "2", bob, carol, testutil.Game1Moves)
+	testutils.PlayAllMoves(suite.T(), suite.msgServer, sdk.WrapSDKContext(suite.ctx), "1", bob, carol, testutils.Game1Moves)
+	testutils.PlayAllMoves(suite.T(), suite.msgServer, sdk.WrapSDKContext(suite.ctx), "2", bob, carol, testutils.Game1Moves)
 	suite.RequireBankBalance(balAlice, alice)
 	suite.RequireBankBalanceWithDenom(0, "coin", alice)
 	suite.RequireBankBalance(balBob+45, bob)
