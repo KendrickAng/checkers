@@ -18,11 +18,13 @@ type (
 		memKey     sdk.StoreKey
 		paramstore paramtypes.Subspace
 		bank       types.BankEscrowKeeper
+		board      types.CheckersLeaderboardKeeper
 	}
 )
 
 func NewKeeper(
 	bank types.BankEscrowKeeper,
+	board types.CheckersLeaderboardKeeper,
 	cdc codec.BinaryCodec,
 	storeKey,
 	memKey sdk.StoreKey,
@@ -40,6 +42,7 @@ func NewKeeper(
 		memKey:     memKey,
 		paramstore: ps,
 		bank:       bank,
+		board:      board,
 	}
 }
 
