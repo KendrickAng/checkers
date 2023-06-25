@@ -14,6 +14,29 @@
  */
 export type LeaderboardParams = object;
 
+export interface LeaderboardPlayerInfo {
+  index?: string;
+
+  /** @format uint64 */
+  wonCount?: string;
+
+  /** @format uint64 */
+  lostCount?: string;
+
+  /** @format uint64 */
+  forfeitedCount?: string;
+  dateUpdated?: string;
+}
+
+export interface LeaderboardQueryAllPlayerInfoResponse {
+  playerInfo?: LeaderboardPlayerInfo[];
+  pagination?: V1Beta1PageResponse;
+}
+
+export interface LeaderboardQueryGetPlayerInfoResponse {
+  playerInfo?: LeaderboardPlayerInfo;
+}
+
 /**
  * QueryParamsResponse is response type for the Query/Params RPC method.
  */
@@ -31,6 +54,48 @@ export interface RpcStatus {
   code?: number;
   message?: string;
   details?: ProtobufAny[];
+}
+
+export interface V1Beta1PageRequest {
+  /**
+   * key is a value returned in PageResponse.next_key to begin
+   * querying the next page most efficiently. Only one of offset or key
+   * should be set.
+   * @format byte
+   */
+  key?: string;
+
+  /**
+   * offset is a numeric offset that can be used when key is unavailable.
+   * It is less efficient than using key. Only one of offset or key should
+   * be set.
+   * @format uint64
+   */
+  offset?: string;
+
+  /**
+   * limit is the total number of results to be returned in the result page.
+   * If left empty it will default to a value to be set by each app.
+   * @format uint64
+   */
+  limit?: string;
+
+  /**
+   * count_total is set to true  to indicate that the result set should include
+   * a count of the total number of items available for pagination in UIs.
+   * count_total is only respected when offset is used. It is ignored when key
+   * is set.
+   */
+  count_total?: boolean;
+  reverse?: boolean;
+}
+
+export interface V1Beta1PageResponse {
+  /** @format byte */
+  next_key?: string;
+
+  /** @format uint64 */
+  total?: string;
 }
 
 export type QueryParamsType = Record<string | number, any>;
@@ -240,6 +305,48 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
   queryParams = (params: RequestParams = {}) =>
     this.request<LeaderboardQueryParamsResponse, RpcStatus>({
       path: `/alice/checkers/leaderboard/params`,
+      method: "GET",
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryPlayerInfoAll
+   * @summary Queries a list of PlayerInfo items.
+   * @request GET:/alice/checkers/leaderboard/player_info
+   */
+  queryPlayerInfoAll = (
+    query?: {
+      "pagination.key"?: string;
+      "pagination.offset"?: string;
+      "pagination.limit"?: string;
+      "pagination.count_total"?: boolean;
+      "pagination.reverse"?: boolean;
+    },
+    params: RequestParams = {},
+  ) =>
+    this.request<LeaderboardQueryAllPlayerInfoResponse, RpcStatus>({
+      path: `/alice/checkers/leaderboard/player_info`,
+      method: "GET",
+      query: query,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * No description
+   *
+   * @tags Query
+   * @name QueryPlayerInfo
+   * @summary Queries a PlayerInfo by index.
+   * @request GET:/alice/checkers/leaderboard/player_info/{index}
+   */
+  queryPlayerInfo = (index: string, params: RequestParams = {}) =>
+    this.request<LeaderboardQueryGetPlayerInfoResponse, RpcStatus>({
+      path: `/alice/checkers/leaderboard/player_info/${index}`,
       method: "GET",
       format: "json",
       ...params,
