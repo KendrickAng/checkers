@@ -3,7 +3,7 @@ package cli
 import (
 	"strconv"
 
-	"github.com/b9lab/checkers/x/leaderboard/types"
+	"github.com/alice/checkers/x/leaderboard/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
