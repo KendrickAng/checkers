@@ -315,6 +315,55 @@ paths:
                   additionalProperties: {}
       tags:
         - Query
+  /alice/checkers/leaderboard/board:
+    get:
+      summary: Queries a Board by index.
+      operationId: AliceCheckersLeaderboardBoard
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              Board:
+                type: object
+                properties:
+                  playerInfo:
+                    type: object
+                    properties:
+                      index:
+                        type: string
+                      wonCount:
+                        type: string
+                        format: uint64
+                      lostCount:
+                        type: string
+                        format: uint64
+                      forfeitedCount:
+                        type: string
+                        format: uint64
+                      dateUpdated:
+                        type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    '@type':
+                      type: string
+                  additionalProperties: {}
+      tags:
+        - Query
   /alice/checkers/leaderboard/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -30493,6 +30542,25 @@ definitions:
                   "@type": "type.googleapis.com/google.protobuf.Duration",
                   "value": "1.212s"
                 }
+  alice.checkers.leaderboard.Board:
+    type: object
+    properties:
+      playerInfo:
+        type: object
+        properties:
+          index:
+            type: string
+          wonCount:
+            type: string
+            format: uint64
+          lostCount:
+            type: string
+            format: uint64
+          forfeitedCount:
+            type: string
+            format: uint64
+          dateUpdated:
+            type: string
   alice.checkers.leaderboard.Params:
     type: object
     description: Params defines the parameters for the module.
@@ -30545,6 +30613,28 @@ definitions:
             format: uint64
             title: "total is total number of results available if PageRequest.count_total\r\nwas set, its value is undefined otherwise"
         title: "PageResponse is to be embedded in gRPC response messages where the\r\ncorresponding request message has used PageRequest.\r\n\r\n message SomeResponse {\r\n         repeated Bar results = 1;\r\n         PageResponse page = 2;\r\n }"
+  alice.checkers.leaderboard.QueryGetBoardResponse:
+    type: object
+    properties:
+      Board:
+        type: object
+        properties:
+          playerInfo:
+            type: object
+            properties:
+              index:
+                type: string
+              wonCount:
+                type: string
+                format: uint64
+              lostCount:
+                type: string
+                format: uint64
+              forfeitedCount:
+                type: string
+                format: uint64
+              dateUpdated:
+                type: string
   alice.checkers.leaderboard.QueryGetPlayerInfoResponse:
     type: object
     properties:
